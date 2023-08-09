@@ -29,7 +29,7 @@ dbP: List[Payment] = [
         sender = "cd0bdffa-9ee1-49a4-93bb-e93fb2e4d085",
         receiver = "13bdecd0-1a4b-43c1-bc60-87a5e4972df5",
     )
-]
+] 
 
 # @api.post("/payment/?sender={sid}&receiver={rid}")
 # async def process_payment()
