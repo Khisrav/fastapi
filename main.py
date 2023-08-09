@@ -31,8 +31,6 @@ dbP: List[Payment] = [
     )
 ]
 
-# @api.post("/payment/?sender={sid}&receiver={rid}")
-# async def process_payment()
 @api.get("/users/")
 async def users():
     return dbU
