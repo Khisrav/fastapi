@@ -2,17 +2,13 @@ from pydantic import BaseModel
 from enum import Enum
 from uuid import UUID, uuid4
 from typing import Optional
-
-class User(BaseModel):
-    id: Optional[UUID] = uuid4()
-    fullname: str
-    wallet: float
-    currency: str
+import time
 
 class Payment(BaseModel):
-    id: Optional[UUID] = uuid4()
-    amount: float
-    currency: str
-    time: int
-    sender: UUID
-    receiver: UUID
+    id: Optional[int]
+    uuid: Optional[UUID] = uuid4()
+    amount: Optional[float] = 0
+    currency: Optional[str] = "TJS"
+    time: Optional[int] = time.time()
+    wallet_id: int
+    service_id: int
