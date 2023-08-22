@@ -6,47 +6,52 @@ import time, asyncio, mysql.connector, json
 
 api = FastAPI()
 
-async def database_query(query: str, values = None):
-    dataBase1 = mysql.connector.connect(
-        host     = 'localhost',
-        user     = 'root',
-        password = '',
-        database = 'fastapi'
+# Database connection setup
+def get_database_connection():
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="",
+        database="fastapi"
     )
 
-    cursorObject = dataBase1.cursor()
+# Perform a database query
+async def database_query(query: str, values=None):
+    connection = get_database_connection()
+    cursor = connection.cursor()
 
-    cursorObject.execute(query, values)
-    if values:dataBase1.commit()
-    result = cursorObject.fetchall()
-    dataBase1.close()
+    cursor.execute(query, values)
+    if values:
+        connection.commit()
+    result = cursor.fetchall()
+    
+    cursor.close()
+    connection.close()
+    
     return result
 
+# Process payment
 async def payment_process(payment: Payment):
-    # Check if service_id and wallet_id exists
-    service = await database_query("SELECT * FROM `services` WHERE `id` = " + str(payment.service_id))
-    wallet = await database_query("SELECT * FROM `wallets` WHERE `id` = " + str(payment.wallet_id))
-    
-    status = "success"
-    if len(service) == 0:status = "service not found"
-    if len(wallet) == 0:status = "wallet not found"
-    
-    # Update service earnings and wallet balance
-    if (len(service) != 0 and len(wallet) != 0):
-        payment.amount = service[0][3]    
-        if len(wallet) != 0 and wallet[0][1] >= payment.amount:
-            update_query = "UPDATE `services` SET `earnings` = `earnings` + %s WHERE `id` = %s"
-            values = (payment.amount, payment.service_id)
+    service = await database_query("SELECT * FROM `services` WHERE `id` = %s", (payment.service_id,))
+    wallet = await database_query("SELECT * FROM `wallets` WHERE `id` = %s", (payment.wallet_id,))
 
-            update_service = await database_query(update_query, values)
-            ##############
-            update_query = "UPDATE `wallets` SET `balance` = `balance` - %s WHERE `id` = %s"
-            values = (payment.amount, payment.wallet_id)
+    if not service:
+        status = "service not found"
+    elif not wallet:
+        status = "wallet not found"
+    elif wallet[0][1] < payment.amount:
+        status = "insufficient funds"
+    else:
+        status = "success"
+        payment.amount = service[0][3]
 
-            update_wallet = await database_query(update_query, values)
-        elif len(wallet) != 0 and wallet[0][1] < payment.amount:status = "insufficient funds"
+        update_service_query = "UPDATE `services` SET `earnings` = `earnings` + %s WHERE `id` = %s"
+        update_wallet_query = "UPDATE `wallets` SET `balance` = `balance` - %s WHERE `id` = %s"
+        update_values = (payment.amount, payment.service_id)
+        
+        await database_query(update_service_query, update_values)
+        await database_query(update_wallet_query, update_values)
 
-    # Add payment to DB with matching status
     sql_query = "INSERT INTO `payments` (`uuid`, `amount`, `currency`, `time`, `wallet_id`, `service_id`, `status`) VALUES (%s, %s, %s, %s, %s, %s, %s)"
     sql_values = (
         str(payment.uuid),
@@ -57,7 +62,7 @@ async def payment_process(payment: Payment):
         payment.service_id,
         status
     )
-    transaction = await database_query(sql_query, sql_values)
+    await database_query(sql_query, sql_values)
 
 @api.post('/payment/')
 async def create_payment(payment: Payment):
@@ -66,12 +71,15 @@ async def create_payment(payment: Payment):
     asyncio.create_task(payment_process(payment))
     return {
         "payment_uuid": payment.uuid,
-        "message": "Платеж обрабатывается"
+        "message": "Payment is being processed"
     }
 
 @api.get('/payment/{payment_uuid}')
 async def check_payment(payment_uuid: str):
-    payment = await database_query("SELECT * FROM `payments` WHERE `uuid` = '"+payment_uuid+"'")
+    payment = await database_query("SELECT * FROM `payments` WHERE `uuid` = '" + payment_uuid + "'")
+    if not payment:
+        raise HTTPException(status_code=404, detail="Payment not found")
+    
     payment_dict = {
         "id": payment[0][0],
         "uuid": payment[0][1],
@@ -80,6 +88,6 @@ async def check_payment(payment_uuid: str):
         "time": payment[0][4],
         "wallet_id": payment[0][5],
         "service_id": payment[0][6],
-        "status": payment[0][7],
+        "status": payment[0][7]
     }
-    return json.loads(json.dumps(payment_dict, indent=4))
+    return payment_dict
