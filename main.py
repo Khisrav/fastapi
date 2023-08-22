@@ -6,7 +6,6 @@ import time, asyncio, mysql.connector, json
 
 api = FastAPI()
 
-# Database connection setup
 def get_database_connection():
     return mysql.connector.connect(
         host="localhost",
@@ -15,7 +14,6 @@ def get_database_connection():
         database="fastapi"
     )
 
-# Perform a database query
 async def database_query(query: str, values=None):
     connection = get_database_connection()
     cursor = connection.cursor()
@@ -30,7 +28,6 @@ async def database_query(query: str, values=None):
     
     return result
 
-# Process payment
 async def payment_process(payment: Payment):
     service = await database_query("SELECT * FROM `services` WHERE `id` = %s", (payment.service_id,))
     wallet = await database_query("SELECT * FROM `wallets` WHERE `id` = %s", (payment.wallet_id,))
