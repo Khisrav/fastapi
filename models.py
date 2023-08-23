@@ -5,7 +5,6 @@ from typing import Optional
 import time
 
 class Payment(BaseModel):
-    id: Optional[int]
     uuid: Optional[UUID] = uuid4()
     amount: Optional[float] = 0
     currency: Optional[str] = "TJS"
