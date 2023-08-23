@@ -3,5 +3,4 @@ uvicorn
 uuid
 typing
 pydantic
-mysql-connector-python
 aiomysql
