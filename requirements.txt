@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+uuid
+models
+typing
+pydantic
+enum
+mysql-connector-python
