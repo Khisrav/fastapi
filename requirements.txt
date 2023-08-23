@@ -1,7 +1,6 @@
 fastapi
 uvicorn
 uuid
-models
 typing
 pydantic
 enum
