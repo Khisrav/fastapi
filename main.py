@@ -8,10 +8,10 @@ api = FastAPI()
 
 def get_database_connection():
     return mysql.connector.connect(
-        host="Khisrav.mysql.pythonanywhere-services.com",
-        user="Khisrav",
-        password="rootroot",
-        database="Khisrav$fastapi"
+        host="sql.freedb.tech",
+        user="freedb_khisrav",
+        password="ASg?U3!&$x3hVjR",
+        database="freedb_khisrav_api_db"
     )
 
 async def database_query(query: str, values=None):
