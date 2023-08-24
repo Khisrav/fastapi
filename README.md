@@ -8,16 +8,12 @@
 ## Установка
 Для работы кода требуется Python 3.x и следующие библиотеки (некоторые из них возможно уже встроены в Python):
 ```bash
-fastapi
-uvicorn
-uuid
-models
-typing
-pydantic
-enum
-mysql-connector-python
+pip install -r requirements.txt
 ```
 Также запустите скрипт ```setup.py```. Он отвечает за установку базы данных (файл ```mysql.sql```)
+Данные для подключения к базе данных тоже нужно будет указать.
+
+Демо версия: ```https://fastapi-6jb3.onrender.com/docs```
 
 ## Запуск
 Команда для запуска REST API
